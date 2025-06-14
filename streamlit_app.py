@@ -1,12 +1,13 @@
 import streamlit as st
 import pandas as pd
-import joblib
+import pickle
 import numpy as np
 
-# モデルとエンコーダーを読み込む
+# モデルとエンコーダーを読み込む（pickle形式）
 @st.cache_resource
 def load_model():
-    model, features, label_encoders = joblib.load("rf_model_lnmeta.pkl")
+    with open("rf_model_lnmeta_cloud.pkl", "rb") as f:
+        model, features, label_encoders = pickle.load(f)
     return model, features, label_encoders
 
 model, features, label_encoders = load_model()
