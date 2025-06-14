@@ -33,7 +33,7 @@ def train_model():
 
 model, features, label_encoders = train_model()
 
-st.title("Lymph Node Metastasis Prediction (Ln meta. - Train on Load)")
+st.title("Lymph Node Metastasis Prediction (Safe Encoding Version)")
 
 # 入力フォーム
 age = st.number_input("Age", 20, 100)
@@ -50,7 +50,7 @@ cher2 = st.selectbox("cHER2", ["0", "1+", "2+", "3+"])
 her2_expr = st.selectbox("HER2 Expression", ["Positive", "Negative", "Unknown"])
 us_size = st.number_input("Ultrasound Tumor Size (mm)", 0.0, 100.0)
 
-# データフレーム構築
+# データ構築
 input_dict = {
     "age": age,
     "high(cm)": height,
@@ -68,11 +68,11 @@ input_dict = {
 }
 input_df = pd.DataFrame([input_dict])
 
-# カテゴリ変数をエンコード
+# 安全なカテゴリ変換：未知の値は -1 に
 for col in input_df.columns:
     if col in label_encoders:
         le = label_encoders[col]
-        input_df[col] = le.transform(input_df[col])
+        input_df[col] = input_df[col].apply(lambda x: le.transform([x])[0] if x in le.classes_ else -1)
 
 # 予測
 if st.button("Predict"):
