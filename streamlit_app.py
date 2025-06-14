@@ -60,5 +60,7 @@ input_data = input_data[feature_names]
 
 # 予測
 if st.button("Predict"):
+    proba = model.predict_proba(input_data)[0][1]  # 転移の確率（クラス1）
     prediction = model.predict(input_data)[0]
-    st.success(f"Prediction result: {'Metastasis' if prediction >= 0.5 else 'No Metastasis'}")
+    result_label = 'Metastasis' if prediction == 1 else 'No Metastasis'
+    st.success(f"Prediction result: {result_label} ({proba * 100:.1f}%)")
