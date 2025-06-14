@@ -19,10 +19,12 @@ def train_model():
 
     label_encoders = {}
     for col in df.columns:
-        if df[col].dtype == "object":
+        if df[col].dtype == "object" and col != "cHG":  # cHGは数値扱い
             le = LabelEncoder()
             df[col] = le.fit_transform(df[col])
             label_encoders[col] = le
+        elif col == "cHG":
+            df[col] = df[col].astype(int)  # 順序保持のため数値型に変換
 
     X = df[features]
     y = df[target]
@@ -33,7 +35,7 @@ def train_model():
 
 model, features, label_encoders = train_model()
 
-st.title("Lymph Node Metastasis Prediction (Corrected Probability)")
+st.title("Lymph Node Metastasis Prediction (cHG as Numeric)")
 
 # 入力フォーム
 age = st.number_input("Age", 20, 100)
@@ -43,7 +45,7 @@ diagnostic = st.selectbox("Axillary Diagnostic", ["Imaging", "FNA negative", "CN
 menopause = st.selectbox("Menopause", ["Pre", "Post"])
 ct = st.selectbox("Clinical T stage", ["T1", "T2", "T3"])
 histology = st.selectbox("CNB Histopathology", ["IDC", "ILC", "DCIS", "Other"])
-chg = st.selectbox("Clinical Grade (cHG)", ["1", "2", "3"])
+chg = st.selectbox("Clinical Grade (cHG)", [1, 2, 3])
 cer = st.slider("cER (%)", 0, 100)
 cpgr = st.slider("cPgR (%)", 0, 100)
 cher2 = st.selectbox("cHER2", ["0", "1+", "2+", "3+"])
@@ -68,7 +70,7 @@ input_dict = {
 }
 input_df = pd.DataFrame([input_dict])
 
-# 安全なカテゴリ変換
+# カテゴリ変換（cHGは除外）
 for col in input_df.columns:
     if col in label_encoders:
         le = label_encoders[col]
