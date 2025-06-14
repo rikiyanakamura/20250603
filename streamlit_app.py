@@ -5,9 +5,9 @@ from sklearn.ensemble import RandomForestClassifier
 @st.cache_data
 def load_model():
     data = pd.read_csv("Train_data.csv")
-    data["maximum likelihood estimation meta 2"] = data["maximum likelihood estimation meta 2"].fillna(0)
-    X = data.drop(columns=["maximum likelihood estimation meta 2"])
-    y = data["maximum likelihood estimation meta 2"]
+    data["Ln meta."] = data["Ln meta."].map({"Negative": 0, "Positive": 1}).fillna(0)
+    X = data.drop(columns=["Ln meta."])
+    y = data["Ln meta."]
     for col in X.columns:
         if X[col].dtype == "object":
             X[col], _ = pd.factorize(X[col])  # カラム名維持
