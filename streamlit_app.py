@@ -11,7 +11,7 @@ def load_model():
     for col in X.columns:
         if X[col].dtype == "object":
             X[col], _ = pd.factorize(X[col])  # カラム名維持
-    model = RandomForestClassifier(random_state=42)
+    model = RandomForestClassifier(random_state=42, class_weight='balanced')
     model.fit(X.fillna(0), y)
     return model, list(X.columns)
 
