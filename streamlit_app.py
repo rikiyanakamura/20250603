@@ -33,7 +33,7 @@ def train_model():
 
 model, features, label_encoders = train_model()
 
-st.title("Lymph Node Metastasis Prediction (Safe Encoding Version)")
+st.title("Lymph Node Metastasis Prediction (Corrected Probability)")
 
 # 入力フォーム
 age = st.number_input("Age", 20, 100)
@@ -68,7 +68,7 @@ input_dict = {
 }
 input_df = pd.DataFrame([input_dict])
 
-# 安全なカテゴリ変換：未知の値は -1 に
+# 安全なカテゴリ変換
 for col in input_df.columns:
     if col in label_encoders:
         le = label_encoders[col]
@@ -76,7 +76,13 @@ for col in input_df.columns:
 
 # 予測
 if st.button("Predict"):
-    prob = model.predict_proba(input_df)[0][1]
+    prob = model.predict_proba(input_df)[0][1]  # 転移ありの確率
     pred = model.predict(input_df)[0]
-    result = "Metastasis" if pred == 1 else "No Metastasis"
-    st.success(f"Prediction: {result} ({prob * 100:.1f}%)")
+    if pred == 1:
+        result = "Metastasis"
+        prob_display = prob
+    else:
+        result = "No Metastasis"
+        prob_display = 1 - prob
+
+    st.success(f"Prediction: {result} ({prob_display * 100:.1f}%)")
