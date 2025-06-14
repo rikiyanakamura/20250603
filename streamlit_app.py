@@ -10,13 +10,14 @@ def load_model():
     y = data["maximum likelihood estimation meta 2"]
     for col in X.columns:
         if X[col].dtype == "object":
-            X[col] = pd.factorize(X[col])[0]
+            X[col], _ = pd.factorize(X[col])  # カラム名維持
     model = RandomForestClassifier(random_state=42)
     model.fit(X.fillna(0), y)
-    return model
+    return model, list(X.columns)
 
 st.title("Lymph Node Metastasis Prediction")
 
+# 入力欄
 age = st.number_input("Age", 20, 90)
 height = st.number_input("Height (cm)", 130, 200)
 weight = st.number_input("Weight (kg)", 30, 120)
@@ -31,6 +32,7 @@ her2 = st.selectbox("cHER2", ["0", "1+", "2+", "3+"])
 her2_protein = st.selectbox("HER2 Protein", ["Positive", "Negative", "Unknown"])
 us_size = st.number_input("US tumor size (mm)", 0.0, 100.0)
 
+# 入力データ
 input_data = pd.DataFrame([{
     "Age": age,
     "Height": height,
@@ -47,8 +49,16 @@ input_data = pd.DataFrame([{
     "US_Size": us_size
 }])
 
-model = load_model()
+# モデルと特徴量名を取得
+model, feature_names = load_model()
 
+# 入力データをモデルのカラム順に再構成（すべての列を揃え、欠損は0埋め）
+for col in feature_names:
+    if col not in input_data.columns:
+        input_data[col] = 0
+input_data = input_data[feature_names]
+
+# 予測
 if st.button("Predict"):
     prediction = model.predict(input_data)[0]
     st.success(f"Prediction result: {'Metastasis' if prediction >= 0.5 else 'No Metastasis'}")
