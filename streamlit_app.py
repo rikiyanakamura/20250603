@@ -1,18 +1,39 @@
 import streamlit as st
 import pandas as pd
-import pickle
 import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import LabelEncoder
 
-# モデルとエンコーダーを読み込む（pickle形式）
 @st.cache_resource
-def load_model():
-    with open("rf_model_lnmeta_cloud.pkl", "rb") as f:
-        model, features, label_encoders = pickle.load(f)
+def train_model():
+    df = pd.read_csv("Train_data.csv")
+    features = [
+        "age", "high(cm)", "Weight(kg)", "Diagnositc", "menopause",
+        "cT", "CNB Histopathology", "cHG", "cER(%)", "cPgR(%)",
+        "cHER2", "HER2 expression", "US size(mm)"
+    ]
+    target = "Ln meta."
+
+    df = df[features + [target]].dropna()
+    df[target] = df[target].map({"Negative": 0, "Positive": 1})
+
+    label_encoders = {}
+    for col in df.columns:
+        if df[col].dtype == "object":
+            le = LabelEncoder()
+            df[col] = le.fit_transform(df[col])
+            label_encoders[col] = le
+
+    X = df[features]
+    y = df[target]
+
+    model = RandomForestClassifier(random_state=42, class_weight="balanced")
+    model.fit(X, y)
     return model, features, label_encoders
 
-model, features, label_encoders = load_model()
+model, features, label_encoders = train_model()
 
-st.title("Lymph Node Metastasis Prediction (Ln meta.)")
+st.title("Lymph Node Metastasis Prediction (Ln meta. - Train on Load)")
 
 # 入力フォーム
 age = st.number_input("Age", 20, 100)
@@ -51,11 +72,7 @@ input_df = pd.DataFrame([input_dict])
 for col in input_df.columns:
     if col in label_encoders:
         le = label_encoders[col]
-        try:
-            input_df[col] = le.transform(input_df[col])
-        except:
-            st.error(f"Invalid input for {col}: {input_df[col].values[0]}")
-            st.stop()
+        input_df[col] = le.transform(input_df[col])
 
 # 予測
 if st.button("Predict"):
